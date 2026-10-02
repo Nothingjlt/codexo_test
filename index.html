@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090817">
+  <meta name="description" content="Enter the cosmic grid. Play as Nova or Void in a neon arcade showdown.">
+  <title>Cosmic Clash — Nova vs Void</title>
+  <link rel="icon" type="image/svg+xml" href="/icons/mark.svg">
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #090817;
+      --panel: #15132d;
+      --tile: #1b1940;
+      --line: #38315f;
+      --ink: #fffaff;
+      --muted: #aea8ca;
+      --blue: #51eeff;
+      --lime: #caff4f;
+      --coral: #ff66d8;
+      --gold: #ffd45c;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--night); }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 8% 18%, rgba(0, 224, 255, .18), transparent 34%),
+        radial-gradient(ellipse at 94% 78%, rgba(255, 46, 187, .17), transparent 32%),
+        radial-gradient(ellipse at 52% -12%, rgba(116, 75, 255, .34), transparent 48%),
+        linear-gradient(135deg, #090817 0%, #100d25 52%, #0a1024 100%);
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .18; background-image: linear-gradient(rgba(142, 137, 209, .15) 1px, transparent 1px), linear-gradient(90deg, rgba(142, 137, 209, .15) 1px, transparent 1px); background-size: 38px 38px; mask-image: radial-gradient(ellipse at center, black, transparent 78%); }
+    body::after { content: ""; position: fixed; width: 32rem; height: 32rem; left: -22rem; bottom: -24rem; border-radius: 50%; pointer-events: none; background: rgba(255, 46, 187, .14); filter: blur(100px); animation: ambient 9s ease-in-out infinite alternate; }
+    button { font: inherit; }
+    .shell { position: relative; z-index: 1; width: min(100%, 460px); margin: auto; padding: clamp(18px, 5vw, 28px); border: 1px solid rgba(172, 153, 255, .25); border-radius: 30px; background: linear-gradient(145deg, rgba(24, 21, 54, .91), rgba(12, 13, 34, .9)); box-shadow: 0 28px 100px rgba(0, 0, 0, .48), 0 0 52px rgba(125, 78, 255, .1), inset 0 1px 0 rgba(255,255,255,.07); backdrop-filter: blur(18px); }
+    .shell::before { content: ""; position: absolute; inset: 0 14% auto; height: 1px; background: linear-gradient(90deg, transparent, rgba(81, 238, 255, .65), rgba(255, 102, 216, .65), transparent); }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+    .brand { display: flex; gap: 11px; align-items: center; font-size: 14px; font-weight: 950; letter-spacing: .16em; text-shadow: 0 0 20px rgba(81, 238, 255, .24); }
+    .brand-mark { width: 36px; height: 36px; filter: drop-shadow(0 0 14px rgba(81, 238, 255, .4)); }
+    .edition { padding: 7px 10px; border: 1px solid rgba(190, 176, 255, .18); border-radius: 999px; color: #c1badf; background: rgba(255,255,255,.035); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .intro { margin-bottom: 22px; }
+    h1 { position: relative; width: fit-content; font-size: clamp(36px, 10vw, 48px); line-height: .98; letter-spacing: -.055em; margin: 0; font-weight: 950; background: linear-gradient(100deg, #fffaff 4%, #9bf9ff 48%, #e6ff78 94%); color: transparent; background-clip: text; filter: drop-shadow(0 5px 22px rgba(81, 238, 255, .17)); }
+    h1::after { content: "✦"; position: absolute; top: -.48em; right: -.73em; color: var(--coral); font-size: .38em; text-shadow: 0 0 18px rgba(255, 102, 216, .8); animation: twinkle 1.8s ease-in-out infinite alternate; }
+    .intro p { color: #bbb5d5; margin: 11px 0 0; font-size: 15px; letter-spacing: .015em; }
+    .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; border-radius: 16px; background: rgba(7, 8, 24, .74); border: 1px solid rgba(152, 140, 220, .2); margin-bottom: 18px; }
+    .mode-button { min-height: 48px; border: 0; border-radius: 12px; color: #aaa5c8; background: transparent; font-weight: 800; font-size: 14px; cursor: pointer; transition: .2s ease; }
+    .mode-button[aria-pressed="true"] { background: linear-gradient(110deg, #5842bd, #a33cbb 60%, #d0479c); color: white; box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 5px 20px rgba(180, 60, 195, .32); }
+    .scorebar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 16px; }
+    .score { position: relative; text-align: center; padding: 12px 5px 11px; background: linear-gradient(145deg, rgba(37, 31, 75, .85), rgba(19, 18, 47, .88)); border: 1px solid rgba(156, 145, 218, .2); border-radius: 16px; transition: .24s; }
+    .score.active { border-color: rgba(81, 238, 255, .8); background: linear-gradient(145deg, rgba(36, 63, 105, .92), rgba(29, 25, 70, .94)); box-shadow: 0 0 0 1px rgba(81, 238, 255, .17), 0 0 24px rgba(81, 238, 255, .17); animation: score-pulse 1.4s ease-in-out infinite alternate; }
+    .score-label { display: flex; align-items: center; justify-content: center; gap: 6px; color: #c1badf; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+    .score-mark { font-weight: 900; font-size: 14px; }
+    .score-mark.x { color: var(--blue); }
+    .score-mark.o { color: var(--coral); }
+    .symbol { display: block; overflow: visible; color: currentColor; }
+    .score-mark .symbol { width: 20px; height: 20px; filter: drop-shadow(0 0 7px currentColor); }
+    .score-value { margin-top: 5px; font-size: 27px; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,255,255,.11); }
+    .turn-card { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #f1eaff; font-size: 15px; font-weight: 800; margin-bottom: 14px; border: 1px solid rgba(157, 142, 220, .16); border-radius: 14px; background: rgba(9, 8, 27, .53); transition: .2s; }
+    .turn-card.nova-turn { border-color: rgba(81,238,255,.58); background: linear-gradient(100deg, rgba(11,68,92,.36), rgba(9,8,27,.65), rgba(11,68,92,.36)); box-shadow: inset 0 0 22px rgba(81,238,255,.08), 0 0 22px rgba(81,238,255,.08); }
+    .turn-card.void-turn { border-color: rgba(255,102,216,.58); background: linear-gradient(100deg, rgba(88,20,91,.33), rgba(9,8,27,.65), rgba(88,20,91,.33)); box-shadow: inset 0 0 22px rgba(255,102,216,.08), 0 0 22px rgba(255,102,216,.08); }
+    .turn-card.finished { border-color: rgba(255, 212, 92, .42); background: linear-gradient(90deg, rgba(255, 212, 92, .07), rgba(255, 102, 216, .09)); box-shadow: 0 0 24px rgba(255, 180, 74, .11); }
+    .turn-icon { display: inline-grid; place-items: center; width: 31px; height: 31px; border: 1px solid var(--line); border-radius: 11px; font-size: 21px; font-weight: 900; background: rgba(255,255,255,.04); }
+    .turn-icon.x { color: var(--blue); text-shadow: 0 0 14px rgba(81, 238, 255, .7); }
+    .turn-icon.o { color: var(--coral); text-shadow: 0 0 14px rgba(255, 102, 216, .8); }
+    .turn-icon .symbol { width: 22px; height: 22px; }
+    .turn-icon.win { color: var(--gold); border-color: rgba(255,212,92,.55); text-shadow: 0 0 15px rgba(255,212,92,.65); }
+    .turn-card.finished .turn-icon.win { animation: winner-glow .48s ease-in-out infinite alternate; }
+    .board {
+      position: relative; width: 100%; aspect-ratio: 1; display: grid; padding: 4px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 9px; border-radius: 28px;
+      background: conic-gradient(from 20deg, var(--blue), #8d73ff, var(--coral), var(--gold), var(--lime), var(--blue));
+      touch-action: manipulation; isolation: isolate;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 0 28px rgba(81,238,255,.12), 0 20px 38px rgba(0, 0, 0, .34);
+    }
+    .board::before { content: ""; position: absolute; inset: -7px; z-index: -1; border-radius: 34px; background: conic-gradient(from 20deg, var(--blue), #8d73ff, var(--coral), var(--gold), var(--lime), var(--blue)); filter: blur(17px); opacity: .44; animation: aura-breathe 2.4s ease-in-out infinite alternate; }
+    .cell {
+      appearance: none; position: relative; isolation: isolate; display: grid; place-items: center; min-width: 0; min-height: 0; padding: 0; text-align: center;
+      overflow: hidden; border-radius: 22px; border: 1px solid rgba(171, 163, 236, .27);
+      background: linear-gradient(145deg, rgba(42, 37, 88, .97), rgba(19, 19, 51, .99)); color: var(--ink);
+      font-size: clamp(56px, 18vw, 82px); font-weight: 950; line-height: 1; cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -18px 28px rgba(4, 5, 21, .2), 0 6px 0 #080718, 0 14px 25px rgba(0,0,0,.18);
+      transition: transform .16s cubic-bezier(.2,.8,.2,1), border-color .2s, background .2s, box-shadow .2s;
+      user-select: none; -webkit-user-select: none;
+    }
+    .cell:not(:disabled):hover { border-color: rgba(115, 245, 255, .92); background: linear-gradient(145deg, #292c68, #171d4a); transform: translateY(-4px); box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 7px 0 #080718, 0 0 28px rgba(81, 238, 255, .18); }
+    .cell:active:not(:disabled) { transform: translateY(1px) scale(.975); box-shadow: 0 2px 0 #080718; }
+    .cell:focus-visible, .mode-button:focus-visible, .action:focus-visible, .reset-score:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    .cell:disabled { cursor: default; }
+    .cell::before { content: ""; position: absolute; z-index: 0; inset: 14%; border-radius: 50%; opacity: 0; pointer-events: none; background: radial-gradient(circle, rgba(255,255,255,.65), rgba(81,238,255,.28) 22%, transparent 68%); }
+    .cell.void::before { background: radial-gradient(circle, rgba(255,255,255,.65), rgba(255,102,216,.34) 24%, transparent 68%); }
+    .cell.impact::before { animation: impact-ring .48s cubic-bezier(.14,.68,.2,1) both; }
+    .cell.impact { animation: tile-impact .44s cubic-bezier(.15,.75,.2,1) both; }
+    .cell.x { color: var(--blue); }
+    .cell.o { color: var(--coral); }
+    .cell .symbol { position: relative; z-index: 1; width: 72%; height: 72%; margin: auto; pointer-events: none; transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 17px currentColor); animation: mark-in .48s cubic-bezier(.18,1.65,.48,1) both; }
+    .symbol path, .symbol circle, .symbol ellipse { fill: none; stroke: currentColor; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+    .symbol .core, .symbol .satellite { fill: currentColor; stroke: none; }
+    .symbol.nova .flare { stroke-dasharray: 360; stroke-dashoffset: 360; animation: star-draw .62s cubic-bezier(.16,.8,.2,1) forwards; }
+    .symbol.nova .inner-star { transform-box: fill-box; transform-origin: center; animation: star-spin 1.9s cubic-bezier(.5,0,.5,1) infinite alternate; }
+    .symbol.nova .core { animation: core-flare .7s ease-in-out infinite alternate; }
+    .symbol.void .orbit { transform-box: fill-box; transform-origin: center; animation: orbit-spin 1.05s linear infinite; }
+    .symbol.void .event { animation: gravity-pulse .62s ease-in-out infinite alternate; }
+    .symbol.void .satellite { transform-box: view-box; transform-origin: 50px 50px; animation: orbit-spin 1.7s linear infinite reverse; }
+    .cell.winning { background: linear-gradient(145deg, #403972, #272653); border-color: #ffd45c; box-shadow: inset 0 0 28px rgba(255,212,92,.18), 0 0 28px rgba(255,212,92,.3), 0 6px 0 #080718; animation: winner-glow .72s ease-in-out infinite alternate; }
+    .cell.winning.x, .cell.winning.o { color: var(--gold); }
+    @keyframes mark-in { from { opacity: 0; transform: scale(.45) rotate(-12deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+    @keyframes winner-glow { from { filter: brightness(1); } to { filter: brightness(1.28); } }
+    @keyframes aura-breathe { to { opacity: .82; filter: blur(23px); } }
+    @keyframes star-draw { to { stroke-dashoffset: 0; } }
+    @keyframes star-spin { to { transform: rotate(28deg) scale(1.08); } }
+    @keyframes core-flare { to { opacity: .45; transform: scale(.55); } }
+    @keyframes orbit-spin { to { transform: rotate(360deg); } }
+    @keyframes gravity-pulse { to { transform: scale(.76); opacity: .55; } }
+    @keyframes impact-ring { 0% { opacity: .95; transform: scale(.12); } 100% { opacity: 0; transform: scale(2.2); } }
+    @keyframes tile-impact { 0% { transform: scale(.86) rotate(-2deg); filter: brightness(2.2); } 45% { transform: scale(1.045) rotate(1deg); } 100% { transform: scale(1) rotate(0); filter: brightness(1); } }
+    .shell.winner-ram { animation: winner-ram .48s cubic-bezier(.3,.1,.35,1) both; }
+    @keyframes winner-ram { 0%,100% { transform: translateX(0) scale(1); } 18% { transform: translateX(-5px) scale(1.008); } 36% { transform: translateX(5px) scale(1.008); } 54% { transform: translateX(-3px); } 72% { transform: translateX(3px); } }
+    @keyframes twinkle { from { transform: scale(.82) rotate(-12deg); opacity: .65; } to { transform: scale(1.16) rotate(12deg); opacity: 1; } }
+    .actions { display: flex; justify-content: center; margin-top: 22px; }
+    .action { min-height: 54px; min-width: 196px; border: 0; border-radius: 16px; padding: 0 23px; color: #17102b; background: linear-gradient(110deg, #dfff4d, #b5ff65 52%, #81f6a3); font-size: 15px; font-weight: 950; cursor: pointer; box-shadow: 0 5px 0 #62982d, 0 11px 28px rgba(174, 255, 80, .19); transition: transform .14s, filter .14s, box-shadow .14s; }
+    .action:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #62982d, 0 15px 34px rgba(174, 255, 80, .28); }
+    .action:active { transform: translateY(2px); box-shadow: 0 2px 0 #62982d; }
+    .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; min-height: 28px; }
+    .tip { color: #aaa4c5; font-size: 12px; }
+    .reset-score { border: 0; padding: 8px 0 8px 8px; color: #d0c8e8; background: none; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .celebration { position: fixed; inset: 0; z-index: 20; overflow: hidden; pointer-events: none; }
+    .celebration::before { content: ""; position: absolute; left: 50%; top: 48%; width: min(72vw, 440px); aspect-ratio: 1; border: 2px solid rgba(81, 238, 255, .8); border-radius: 50%; box-shadow: 0 0 24px rgba(81,238,255,.5), inset 0 0 24px rgba(255,102,216,.3); transform: translate(-50%, -50%) scale(.08); animation: shockwave .85s cubic-bezier(.1,.62,.24,1) forwards; }
+    .confetti-piece { position: absolute; top: 48%; left: 50%; width: 9px; height: 16px; border-radius: 4px; background: var(--color); box-shadow: 0 0 12px var(--color); animation: confetti-burst 1.5s var(--delay) cubic-bezier(.12,.64,.2,1) forwards; }
+    .confetti-piece:nth-child(3n) { width: 11px; height: 11px; border-radius: 50%; }
+    .confetti-piece:nth-child(3n + 1) { width: 6px; height: 20px; border-radius: 4px; }
+    @keyframes confetti-burst { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.25) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.45) rotate(var(--spin)); } }
+    @keyframes ambient { to { transform: translate3d(18vw, -12vh, 0) scale(1.15); opacity: .65; } }
+    @keyframes score-pulse { to { box-shadow: 0 0 0 2px rgba(81,238,255,.25), 0 0 32px rgba(81,238,255,.29); } }
+    @keyframes shockwave { 25% { opacity: .85; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); } }
+    @media (max-height: 760px) and (min-width: 500px) { .shell { margin: 0 auto; } .topbar { margin-bottom: 18px; } .board { max-width: 390px; margin: auto; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } .cell.winning, .cell.impact, .score.active, .turn-card.finished .turn-icon.win, .symbol, .symbol *, .shell.winner-ram { animation: none !important; } body::after { animation: none; } .celebration { display: none; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="13" fill="#282451"/><path d="M20 5 24 16 35 20 24 24 20 35 16 24 5 20 16 16Z" fill="none" stroke="#51eeff" stroke-width="2.5" stroke-linejoin="round"/><circle cx="29" cy="11" r="3" fill="#ff66d8"/></svg><span>COSMIC CLASH</span></div>
+      <span class="edition">NOVA VS VOID</span>
+    </header>
+    <section class="intro" aria-labelledby="title">
+      <h1 id="title">Cosmic Clash</h1>
+      <p>Claim the grid. Command the cosmos.</p>
+    </section>
+    <div class="mode-switch" role="group" aria-label="Choose game mode">
+      <button class="mode-button" id="friendMode" aria-pressed="true">DUEL</button>
+      <button class="mode-button" id="computerMode" aria-pressed="false">VS CPU</button>
+    </div>
+    <section class="scorebar" aria-label="Score">
+      <div class="score active" id="scoreX"><div class="score-label"><span class="score-mark x" id="iconX" aria-hidden="true"></span><span id="nameX">Nova</span></div><div class="score-value" id="winsX">0</div></div>
+      <div class="score" id="scoreDraw"><div class="score-label">STANDOFF</div><div class="score-value" id="draws">0</div></div>
+      <div class="score" id="scoreO"><div class="score-label"><span class="score-mark o" id="iconO" aria-hidden="true"></span><span id="nameO">Void</span></div><div class="score-value" id="winsO">0</div></div>
+    </section>
+    <div class="turn-card" id="status" role="status" aria-live="polite"><span class="turn-icon x" id="turnIcon" aria-hidden="true"></span><span id="statusText">Nova's turn</span></div>
+    <div class="board" id="board" role="group" aria-label="Cosmic Clash board"></div>
+    <div class="actions"><button class="action" id="newRound"><span aria-hidden="true">✦</span> Rematch</button></div>
+    <footer class="footer"><span class="tip">First to 3 claims the galaxy.</span><button class="reset-score" id="resetScore">Reset score</button></footer>
+  </main>
+  <script>
+    (() => {
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      const boardEl = document.getElementById('board');
+      const statusText = document.getElementById('statusText');
+      const turnIcon = document.getElementById('turnIcon');
+      const status = document.getElementById('status');
+      let cells = Array(9).fill('');
+      let turn = 'X';
+      let mode = 'friend';
+      let locked = false;
+      let thinking = false;
+      let cpuTimer = null;
+      let winningCells = [];
+      let score = loadScore();
+      const buttons = [];
+      function loadScore() {
+        try { return Object.assign({ X: 0, O: 0, D: 0 }, JSON.parse(localStorage.getItem('xo-club-score') || '{}')); }
+        catch { return { X: 0, O: 0, D: 0 }; }
+      }
+      function saveScore() {
+        try { localStorage.setItem('xo-club-score', JSON.stringify(score)); } catch {}
+      }
+      function symbolMarkup(side) {
+        if (side === 'X') return '<svg class="symbol nova" viewBox="0 0 100 100" aria-hidden="true"><path class="flare" d="M50 3 62 35 97 50 62 65 50 97 38 65 3 50 38 35Z"/><path class="inner-star" d="M50 24 56 43 76 50 56 57 50 77 44 57 24 50 44 43Z"/><circle class="core" cx="50" cy="50" r="6"/><path d="M50 0v10M100 50H90M50 100V90M0 50h10"/></svg>';
+        if (side === 'O') return '<svg class="symbol void" viewBox="0 0 100 100" aria-hidden="true"><ellipse class="orbit" cx="50" cy="50" rx="45" ry="15" transform="rotate(-38 50 50)"/><ellipse class="orbit" cx="50" cy="50" rx="45" ry="15" transform="rotate(38 50 50)"/><circle class="event" cx="50" cy="50" r="25"/><circle class="core" cx="50" cy="50" r="9"/><circle class="satellite" cx="82" cy="20" r="4"/></svg>';
+        return '<svg class="symbol standoff" viewBox="0 0 100 100" aria-hidden="true"><path d="m50 13 8 25 25 8-25 8-8 25-8-25-25-8 25-8Z"/><path d="m17 73 3 9 9 3-9 3-3 9-3-9-9-3 9-3Z"/></svg>';
+      }
+      function celebrate() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const colors = ['#51eeff', '#ff66d8', '#caff4f', '#ffd45c', '#a98aff', '#ffffff'];
+        const burst = document.createElement('div');
+        burst.className = 'celebration';
+        burst.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 64; i++) {
+          const piece = document.createElement('i');
+          piece.className = 'confetti-piece';
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 120 + Math.random() * Math.max(window.innerWidth, window.innerHeight) * .72;
+          piece.style.setProperty('--dx', `${Math.round(Math.cos(angle) * distance)}px`);
+          piece.style.setProperty('--dy', `${Math.round(Math.sin(angle) * distance)}px`);
+          piece.style.setProperty('--spin', `${360 + Math.round(Math.random() * 720)}deg`);
+          piece.style.setProperty('--delay', `${(Math.random() * .16).toFixed(2)}s`);
+          piece.style.setProperty('--color', colors[i % colors.length]);
+          burst.appendChild(piece);
+        }
+        document.body.appendChild(burst);
+        const shell = document.querySelector('.shell');
+        shell.classList.remove('winner-ram');
+        void shell.offsetWidth;
+        shell.classList.add('winner-ram');
+        if (typeof navigator.vibrate === 'function') navigator.vibrate([55, 28, 95, 28, 145]);
+        window.setTimeout(() => shell.classList.remove('winner-ram'), 520);
+        window.setTimeout(() => burst.remove(), 2200);
+      }
+      function render() {
+        buttons.forEach((button, i) => {
+          const mark = cells[i];
+          const freshMark = Boolean(mark && button.dataset.mark !== mark);
+          if (freshMark) button.innerHTML = symbolMarkup(mark);
+          else if (!mark && button.innerHTML) button.innerHTML = '';
+          button.dataset.mark = mark || '';
+          const factionClass = mark === 'X' ? ' x nova' : mark === 'O' ? ' o void' : '';
+          const impactClass = freshMark || button.classList.contains('impact') ? ' impact' : '';
+          button.className = 'cell' + factionClass + (winningCells.includes(i) ? ' winning' : '') + impactClass;
+          if (freshMark) {
+            button.classList.add('impact');
+            window.setTimeout(() => button.classList.remove('impact'), 520);
+          }
+          button.disabled = Boolean(mark || locked || thinking);
+          const faction = mark === 'X' ? (mode === 'computer' ? 'You, Nova star' : 'Nova star') : (mode === 'computer' ? 'CPU, Void vortex' : 'Void vortex');
+          button.setAttribute('aria-label', mark ? `Square ${i + 1}: ${faction}` : `Square ${i + 1}, empty`);
+        });
+        document.getElementById('winsX').textContent = score.X;
+        document.getElementById('winsO').textContent = score.O;
+        document.getElementById('draws').textContent = score.D;
+        document.getElementById('scoreX').classList.toggle('active', !locked && turn === 'X');
+        document.getElementById('scoreO').classList.toggle('active', !locked && turn === 'O');
+        status.classList.toggle('nova-turn', !locked && turn === 'X');
+        status.classList.toggle('void-turn', !locked && turn === 'O');
+        const turnSide = locked ? (winningCells.length ? turn : 'D') : turn;
+        if (turnIcon.dataset.side !== turnSide) {
+          turnIcon.innerHTML = symbolMarkup(turnSide);
+          turnIcon.dataset.side = turnSide;
+        }
+        if (locked) {
+          status.classList.add('finished');
+          turnIcon.className = 'turn-icon ' + (winningCells.length ? 'win' : '');
+        } else {
+          status.classList.remove('finished');
+          turnIcon.className = 'turn-icon ' + turn.toLowerCase();
+        }
+        if (locked && winningCells.length) statusText.textContent = mode === 'computer' ? (turn === 'O' ? 'CPU TAKES THE GALAXY!' : 'NOVA OVERDRIVE! YOU WIN!') : `${turn === 'X' ? 'NOVA' : 'VOID'} CLAIMS THE GALAXY!`;
+        else if (locked) statusText.textContent = 'COSMIC STANDOFF!';
+        else if (thinking) statusText.textContent = 'VOID IS CHARGING…';
+        else statusText.textContent = mode === 'computer' ? 'YOUR MOVE, NOVA' : `${turn === 'X' ? 'NOVA' : 'VOID'} IS UP!`;
+      }
+      function outcome(state) {
+        for (const line of wins) if (state[line[0]] && line.every(i => state[i] === state[line[0]])) return { winner: state[line[0]], line };
+        return state.every(Boolean) ? { winner: 'D' } : null;
+      }
+      function place(i) {
+        if (locked || cells[i] || (mode === 'computer' && turn === 'O')) return;
+        cells[i] = turn;
+        const result = outcome(cells);
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(result && result.winner !== 'D' ? [38, 24, 68] : 14);
+        finishMove();
+      }
+      function finishMove() {
+        const result = outcome(cells);
+        if (result) {
+          locked = true;
+          if (result.winner === 'D') score.D++;
+          else { turn = result.winner; score[result.winner]++; winningCells = result.line; celebrate(); }
+          saveScore();
+        } else turn = turn === 'X' ? 'O' : 'X';
+        render();
+        if (!locked && mode === 'computer' && turn === 'O') {
+          thinking = true;
+          render();
+          cpuTimer = window.setTimeout(() => {
+            const index = bestMove(cells);
+            cells[index] = 'O';
+            thinking = false;
+            cpuTimer = null;
+            finishMove();
+          }, 360);
+        }
+      }
+      function bestMove(state) {
+        let best = -Infinity, choice = -1;
+        for (let i = 0; i < 9; i++) if (!state[i]) {
+          state[i] = 'O';
+          const value = minimax(state, false, 0);
+          state[i] = '';
+          if (value > best) { best = value; choice = i; }
+        }
+        return choice;
+      }
+      function minimax(state, maximizing, depth) {
+        const result = outcome(state);
+        if (result) return result.winner === 'O' ? 10 - depth : result.winner === 'X' ? depth - 10 : 0;
+        let best = maximizing ? -Infinity : Infinity;
+        for (let i = 0; i < 9; i++) if (!state[i]) {
+          state[i] = maximizing ? 'O' : 'X';
+          const value = minimax(state, !maximizing, depth + 1);
+          state[i] = '';
+          best = maximizing ? Math.max(best, value) : Math.min(best, value);
+        }
+        return best;
+      }
+      function newRound() {
+        if (cpuTimer !== null) window.clearTimeout(cpuTimer);
+        cpuTimer = null; thinking = false;
+        cells = Array(9).fill(''); turn = 'X'; locked = false; winningCells = []; render();
+      }
+      for (let i = 0; i < 9; i++) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'cell'; button.addEventListener('click', () => place(i));
+        buttons.push(button); boardEl.appendChild(button);
+      }
+      document.getElementById('iconX').innerHTML = symbolMarkup('X');
+      document.getElementById('iconO').innerHTML = symbolMarkup('O');
+      document.getElementById('friendMode').addEventListener('click', () => setMode('friend'));
+      document.getElementById('computerMode').addEventListener('click', () => setMode('computer'));
+      function setMode(next) {
+        mode = next;
+        document.getElementById('friendMode').setAttribute('aria-pressed', String(mode === 'friend'));
+        document.getElementById('computerMode').setAttribute('aria-pressed', String(mode === 'computer'));
+        document.getElementById('nameX').textContent = mode === 'computer' ? 'You' : 'Nova';
+        document.getElementById('nameO').textContent = mode === 'computer' ? 'CPU' : 'Void';
+        newRound();
+      }
+      document.getElementById('newRound').addEventListener('click', newRound);
+      document.getElementById('resetScore').addEventListener('click', () => {
+        score = { X: 0, O: 0, D: 0 }; saveScore(); newRound();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>
